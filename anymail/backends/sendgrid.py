@@ -69,7 +69,7 @@ class SendGridPayload(RequestsPayload):
         self.generate_message_id = backend.generate_message_id
         self.message_id = None  # Message-ID -- assigned in serialize_data unless provided in headers
         self.smtpapi = {}  # SendGrid x-smtpapi field
-        self.to_list = []  # late-bound 'to' field
+        self.to_list = []  # needed for build_merge_data
         self.merge_field_format = backend.merge_field_format
         self.merge_data = None  # late-bound per-recipient data
         self.merge_global_data = None
@@ -95,14 +95,10 @@ class SendGridPayload(RequestsPayload):
             self.ensure_message_id()
 
         self.build_merge_data()
-        if self.merge_data is None:
-            # Standard 'to' and 'toname' headers
-            self.set_recipients('to', self.to_list)
-        else:
-            # Merge-friendly smtpapi 'to' field
-            self.set_recipients('to', self.to_list)
+        if self.merge_data is not None:
+            # Must *also* set smtpapi 'to' field so SG does batch send
+            # (else all recipients would see each other's emails)
             self.smtpapi['to'] = [email.address for email in self.to_list]
-            self.all_recipients += self.to_list
 
         # Serialize x-smtpapi to json:
         if len(self.smtpapi) > 0:
@@ -200,9 +196,8 @@ class SendGridPayload(RequestsPayload):
             self.data["fromname"] = email.name
 
     def set_to(self, emails):
-        # late-bind in self.serialize_data, because whether it goes in smtpapi
-        # depends on whether there is merge_data
-        self.to_list = emails
+        self.to_list = emails  # track for later use by build_merge_data
+        self.set_recipients('to', emails)
 
     def set_recipients(self, recipient_type, emails):
         assert recipient_type in ["to", "cc", "bcc"]

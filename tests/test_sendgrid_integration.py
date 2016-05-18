@@ -89,6 +89,25 @@ class SendGridBackendIntegrationTests(SimpleTestCase, AnymailTestMixin):
         message.send()
         self.assertEqual(message.anymail_status.status, {'queued'})  # SendGrid always queues
 
+    def test_merge_data(self):
+        message = AnymailMessage(
+            subject="Anymail merge_data test: %value%",
+            body="This body includes merge data: %value%",
+            from_email="Test From <from@example.com>",
+            to=["to1@sink.sendgrid.net", "Recipient 2 <to2@sink.sendgrid.net>"],
+            merge_data={
+                'to1@sink.sendgrid.net': {'value': 'one'},
+                'to2@sink.sendgrid.net': {'value': 'two'},
+            },
+            esp_extra={
+                'merge_field_format': '%{}%',
+            },
+        )
+        message.send()
+        recipient_status = message.anymail_status.recipients
+        self.assertEqual(recipient_status['to1@sink.sendgrid.net'].status, 'queued')
+        self.assertEqual(recipient_status['to2@sink.sendgrid.net'].status, 'queued')
+
     @override_settings(ANYMAIL_SENDGRID_API_KEY="Hey, that's not an API key!")
     def test_invalid_api_key(self):
         with self.assertRaises(AnymailAPIError) as cm:
