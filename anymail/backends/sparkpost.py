@@ -87,15 +87,20 @@ class SparkPostPayload(BasePayload):
     def get_api_params(self):
         # Compose recipients param from to_emails and merge_data (if any)
         recipients = []
-        for email in self.to_emails:
-            rcpt = {'address': {'email': email.email}}
-            if email.name:
-                rcpt['address']['name'] = email.name
-            try:
-                rcpt['substitution_data'] = self.merge_data[email.email]
-            except KeyError:
-                pass  # no merge_data or none for this recipient
-            recipients.append(rcpt)
+        if len(self.merge_data) > 0:
+            # Build JSON recipient structures
+            for email in self.to_emails:
+                rcpt = {'address': {'email': email.email}}
+                if email.name:
+                    rcpt['address']['name'] = email.name
+                try:
+                    rcpt['substitution_data'] = self.merge_data[email.email]
+                except KeyError:
+                    pass  # no merge_data or none for this recipient
+                recipients.append(rcpt)
+        else:
+            # Just use simple recipients list
+            recipients = [email.address for email in self.to_emails]
         if recipients:
             self.params['recipients'] = recipients
 

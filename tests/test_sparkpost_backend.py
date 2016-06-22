@@ -99,7 +99,7 @@ class SparkPostBackendStandardEmailTests(SparkPostBackendMockAPITestCase):
         self.assertEqual(params['subject'], "Subject here")
         self.assertEqual(params['text'], "Here is the message.")
         self.assertEqual(params['from_email'], "from@example.com")
-        self.assertEqual(params['recipients'], [{'address': {'email': "to@example.com"}}])
+        self.assertEqual(params['recipients'], ["to@example.com"])
 
         self.assertEqual(self.get_send_api_key(), 'test_api_key')
 
@@ -118,10 +118,7 @@ class SparkPostBackendStandardEmailTests(SparkPostBackendMockAPITestCase):
         params = self.get_send_params()
         self.assertEqual(params['from_email'], "From Name <from@example.com>")
         # We pre-parse the to-field emails (merge_data also gets attached there):
-        self.assertEqual(params['recipients'], [
-            {'address': {'email': 'to1@example.com', 'name': 'Recipient #1'}},
-            {'address': {'email': 'to2@example.com'}}
-        ])
+        self.assertEqual(params['recipients'], ['Recipient #1 <to1@example.com>', 'to2@example.com'])
         # We let python-sparkpost parse the other email fields:
         self.assertEqual(params['cc'], ['Carbon Copy <cc1@example.com>', 'cc2@example.com'])
         self.assertEqual(params['bcc'], ['Blind Copy <bcc1@example.com>', 'bcc2@example.com'])
@@ -141,10 +138,7 @@ class SparkPostBackendStandardEmailTests(SparkPostBackendMockAPITestCase):
         self.assertEqual(params['subject'], "Subject")
         self.assertEqual(params['text'], "Body goes here")
         self.assertEqual(params['from_email'], "from@example.com")
-        self.assertEqual(params['recipients'], [
-            {'address': {'email': 'to1@example.com'}},
-            {'address': {'email': 'to2@example.com', 'name': 'Also To'}}
-        ])
+        self.assertEqual(params['recipients'], ['to1@example.com', 'Also To <to2@example.com>'])
         self.assertEqual(params['bcc'], ['bcc1@example.com', 'Also BCC <bcc2@example.com>'])
         self.assertEqual(params['cc'], ['cc1@example.com', 'Also CC <cc2@example.com>'])
         self.assertEqual(params['custom_headers'], {
