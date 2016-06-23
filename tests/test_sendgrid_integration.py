@@ -11,7 +11,7 @@ from django.test.utils import override_settings
 from anymail.exceptions import AnymailAPIError
 from anymail.message import AnymailMessage
 
-from .utils import AnymailTestMixin, sample_image_path
+from .utils import AnymailTestMixin, sample_image_path, RUN_LIVE_TESTS
 
 # For API_KEY auth tests:
 SENDGRID_TEST_API_KEY = os.getenv('SENDGRID_TEST_API_KEY')
@@ -21,6 +21,7 @@ SENDGRID_TEST_USERNAME = os.getenv('SENDGRID_TEST_USERNAME')
 SENDGRID_TEST_PASSWORD = os.getenv('SENDGRID_TEST_PASSWORD')
 
 
+@unittest.skipUnless(RUN_LIVE_TESTS, "RUN_LIVE_TESTS disabled in this environment")
 @unittest.skipUnless(SENDGRID_TEST_API_KEY,
                      "Set SENDGRID_TEST_API_KEY environment variable "
                      "to run SendGrid integration tests")
@@ -118,6 +119,7 @@ class SendGridBackendIntegrationTests(SimpleTestCase, AnymailTestMixin):
         self.assertIn("authorization grant is invalid", str(err))
 
 
+@unittest.skipUnless(RUN_LIVE_TESTS, "RUN_LIVE_TESTS disabled in this environment")
 @unittest.skipUnless(SENDGRID_TEST_USERNAME and SENDGRID_TEST_PASSWORD,
                      "Set SENDGRID_TEST_USERNAME and SENDGRID_TEST_PASSWORD"
                      "environment variables to run SendGrid integration tests")

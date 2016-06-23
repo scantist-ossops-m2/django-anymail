@@ -1,14 +1,17 @@
 from __future__ import unicode_literals
 
+import unittest
+
 from django.test import SimpleTestCase
 from django.test.utils import override_settings
 
 from anymail.exceptions import AnymailAPIError
 from anymail.message import AnymailMessage
 
-from .utils import AnymailTestMixin, sample_image_path
+from .utils import AnymailTestMixin, sample_image_path, RUN_LIVE_TESTS
 
 
+@unittest.skipUnless(RUN_LIVE_TESTS, "RUN_LIVE_TESTS disabled in this environment")
 @override_settings(ANYMAIL_POSTMARK_SERVER_TOKEN="POSTMARK_API_TEST",
                    EMAIL_BACKEND="anymail.backends.postmark.PostmarkBackend")
 class PostmarkBackendIntegrationTests(SimpleTestCase, AnymailTestMixin):
