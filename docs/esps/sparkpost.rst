@@ -140,8 +140,11 @@ and :ref:`batch sending <batch-send>` with per-recipient merge data.
 
 You can use a SparkPost stored template by setting a message's
 :attr:`~anymail.message.AnymailMessage.template_id` to the
-template's unique id. Alternatively, you can refer to merge fields
-directly in an EmailMessage---the message itself is used as an
+template's unique id. (When using a stored template, SparkPost prohibits
+setting the EmailMessage's subject, text body, or html body.)
+
+Alternatively, you can refer to merge fields directly in an EmailMessage's
+subject, body, and other fields---the message itself is used as an
 on-the-fly template.
 
 In either case, supply the merge data values with Anymail's

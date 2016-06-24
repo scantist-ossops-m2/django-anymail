@@ -107,6 +107,23 @@ class SparkPostBackendIntegrationTests(SimpleTestCase, AnymailTestMixin):
         self.assertEqual(recipient_status['to1@test.sink.sparkpostmail.com'].status, 'queued')
         self.assertEqual(recipient_status['to2@test.sink.sparkpostmail.com'].status, 'queued')
 
+    def test_stored_template(self):
+        message = AnymailMessage(
+            template_id='test-template',  # a real template in our SparkPost test account
+            to=["to1@test.sink.sparkpostmail.com"],
+            merge_data={
+                'to1@test.sink.sparkpostmail.com': {
+                    'name': "Test Recipient",
+                }
+            },
+            merge_global_data={
+                'order': '12345',
+            },
+        )
+        message.send()
+        recipient_status = message.anymail_status.recipients
+        self.assertEqual(recipient_status['to1@test.sink.sparkpostmail.com'].status, 'queued')
+
     @override_settings(ANYMAIL_SPARKPOST_API_KEY="Hey, that's not an API key!")
     def test_invalid_api_key(self):
         with self.assertRaises(AnymailAPIError) as cm:

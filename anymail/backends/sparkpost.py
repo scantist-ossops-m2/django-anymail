@@ -104,6 +104,15 @@ class SparkPostPayload(BasePayload):
         if recipients:
             self.params['recipients'] = recipients
 
+        # Must remove empty string "content" params when using stored template
+        if self.params.get('template', None):
+            for content_param in ['subject', 'text', 'html']:
+                try:
+                    if not self.params[content_param]:
+                        del self.params[content_param]
+                except KeyError:
+                    pass
+
         return self.params
 
     def set_from_email(self, email):

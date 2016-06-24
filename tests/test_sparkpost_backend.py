@@ -390,10 +390,15 @@ class SparkPostBackendAnymailFeatureTests(SparkPostBackendMockAPITestCase):
         self.assertEqual(params['track_clicks'], True)
 
     def test_template_id(self):
-        self.message.template_id = "welcome_template"
-        self.message.send()
+        message = mail.EmailMultiAlternatives(from_email='from@example.com', to=['to@example.com'])
+        message.template_id = "welcome_template"
+        message.send()
         params = self.get_send_params()
         self.assertEqual(params['template'], "welcome_template")
+        # SparkPost disallows all content (even empty strings) with stored template:
+        self.assertNotIn('subject', params)
+        self.assertNotIn('text', params)
+        self.assertNotIn('html', params)
 
     def test_merge_data(self):
         self.set_mock_response(accepted=2)
