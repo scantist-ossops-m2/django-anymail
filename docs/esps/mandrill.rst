@@ -374,8 +374,9 @@ parameters is that most logging and analytics systems are aware of the
 need to keep auth secret.)
 
 Anymail replaces `djrill.signals.webhook_event` with
-`anymail.signals.tracking` and (in a future release)
-`anymail.signals.inbound`. Anymail parses and normalizes
+`anymail.signals.tracking` for delivery tracking events.
+(It does not currently handle inbound message webhooks.)
+Anymail parses and normalizes
 the event data passed to the signal receiver: see :ref:`event-tracking`.
 
 The equivalent of Djrill's ``data`` parameter is available

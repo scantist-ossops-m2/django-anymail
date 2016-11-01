@@ -17,6 +17,5 @@ Problems? We have some :ref:`troubleshooting` info that may help.
 Now that you've got Anymail working, you might be interested in:
 
 * :ref:`Sending email with Anymail <sending-email>`
-* :ref:`Receiving inbound email <inbound>`
 * :ref:`ESP-specific information <supported-esps>`
 * :ref:`All the docs <main-toc>`

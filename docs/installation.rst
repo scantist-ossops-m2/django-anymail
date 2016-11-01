@@ -65,7 +65,7 @@ this is a good time to add one. (Django's default is "webmaster\@localhost",
 which some ESPs will reject.)
 
 With the settings above, you are ready to send outgoing email through your ESP.
-If you also want to enable status tracking or inbound email, continue with the
+If you also want to enable status tracking, continue with the
 optional settings below. Otherwise, skip ahead to :ref:`sending-email`.
 
 
@@ -168,32 +168,6 @@ to :ref:`configure an Anymail backend <backend-configuration>`, and then:
 
 See :ref:`event-tracking` for information on creating signal handlers and the
 status tracking events you can receive.
-
-
-.. _inbound-configuration:
-
-Configuring inbound email (optional)
-------------------------------------
-
-(Coming soon -- not yet implemented)
-
-.. Anymail can optionally connect to your ESP's inbound webhook to notify your app
-.. of incoming messages.
-..
-.. If you aren't using your EPS's inbound email, skip this section.
-..
-.. If you want to use inbound email with Anymail, follow the steps above
-.. for setting up :ref:`status tracking webhooks <webhooks-configuration>`,
-.. but enter the webhook URL in your ESP's "inbound email" settings,
-.. substituting "inbound" for "tracking" at the end of the url:
-..
-..    :samp:`https://{random}:{random}@{yoursite.example.com}/anymail/{esp}/inbound/`
-..
-.. Then see :ref:`inbound` for information on creating a signal handler
-.. for receiving inbound email notifications in your code.
-..
-.. (Note: if you are only using your ESP for inbound email, not sending messages,
-.. there's no need to change your project's EMAIL_BACKEND.)
 
 
 .. setting:: ANYMAIL

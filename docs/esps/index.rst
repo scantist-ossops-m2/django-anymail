@@ -50,10 +50,6 @@ Email Service Provider                        |Mailgun|   |Mandrill|  |Postmark|
 ============================================  ==========  ==========  ==========  ==========  ===========
 
 
-.. .. rubric:: :ref:`inbound`
-.. -------------------------------------------------------------------------------------------
-.. Inbound webhooks                          (coming)...
-
 Trying to choose an ESP? Please **don't** start with this table. It's far more
 important to consider things like an ESP's deliverability stats, latency, uptime,
 and support for developers. The *number* of extra features an ESP offers is almost

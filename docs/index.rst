@@ -34,7 +34,6 @@ Documentation
    quickstart
    installation
    sending/index
-   inbound
    esps/index
    tips/index
    troubleshooting
