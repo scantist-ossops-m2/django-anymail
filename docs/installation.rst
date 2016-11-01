@@ -27,14 +27,15 @@ Configuring Django's email backend
 
 To use Anymail for sending email, edit your Django project's :file:`settings.py`:
 
-1. Add :mod:`anymail` to your :setting:`INSTALLED_APPS`:
+1. Add :mod:`anymail` to your :setting:`INSTALLED_APPS` (anywhere in the list):
 
     .. code-block:: python
 
-        INSTALLED_APPS = (
-            ...
+        INSTALLED_APPS = [
+            # ...
             "anymail",
-        )
+            # ...
+        ]
 
 2. Add an :setting:`ANYMAIL` settings dict, substituting the appropriate settings for
    your ESP:

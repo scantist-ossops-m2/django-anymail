@@ -94,10 +94,11 @@ or SparkPost or any other supported ESP where you see "mailgun":
 
    .. code-block:: python
 
-        INSTALLED_APPS = (
-            ...
-            "anymail"
-        )
+        INSTALLED_APPS = [
+            # ...
+            "anymail",
+            # ...
+        ]
 
         ANYMAIL = {
             # (exact settings here depend on your ESP...)
