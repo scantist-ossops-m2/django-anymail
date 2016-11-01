@@ -85,9 +85,9 @@ class PostmarkBackendStandardEmailTests(PostmarkBackendMockAPITestCase):
         self.assertEqual(data['To'], 'to1@example.com, Also To <to2@example.com>')
         self.assertEqual(data['Bcc'], 'bcc1@example.com, Also BCC <bcc2@example.com>')
         self.assertEqual(data['Cc'], 'cc1@example.com, Also CC <cc2@example.com>')
+        self.assertEqual(data['ReplyTo'], 'another@example.com')
         self.assertCountEqual(data['Headers'], [
             {'Name': 'Message-ID', 'Value': 'mycustommsgid@sales.example.com'},
-            {'Name': 'Reply-To', 'Value': 'another@example.com'},
             {'Name': 'X-MyHeader', 'Value': 'my value'},
         ])
 
@@ -131,6 +131,16 @@ class PostmarkBackendStandardEmailTests(PostmarkBackendMockAPITestCase):
         email = mail.EmailMessage('Subject', 'Body goes here', 'from@example.com', ['to1@example.com'],
                                   reply_to=['reply@example.com', 'Other <reply2@example.com>'],
                                   headers={'X-Other': 'Keep'})
+        email.send()
+        data = self.get_api_call_json()
+        self.assertEqual(data['ReplyTo'], 'reply@example.com, Other <reply2@example.com>')
+        self.assertEqual(data['Headers'], [{'Name': 'X-Other', 'Value': 'Keep'}])  # don't lose other headers
+
+    def test_reply_to_header(self):
+        # Reply-To needs to be moved out of headers, into dedicated param
+        email = mail.EmailMessage('Subject', 'Body goes here', 'from@example.com', ['to1@example.com'],
+                                  headers={'reply-to': 'reply@example.com, Other <reply2@example.com>',
+                                           'X-Other': 'Keep'})
         email.send()
         data = self.get_api_call_json()
         self.assertEqual(data['ReplyTo'], 'reply@example.com, Other <reply2@example.com>')
