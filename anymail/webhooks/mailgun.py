@@ -3,6 +3,7 @@ from datetime import datetime
 
 import hashlib
 import hmac
+from django.utils.crypto import constant_time_compare
 from django.utils.timezone import utc
 
 from .base import AnymailBaseWebhookView
@@ -34,7 +35,7 @@ class MailgunBaseWebhookView(AnymailBaseWebhookView):
             raise AnymailWebhookValidationFailure("Mailgun webhook called without required security fields")
         expected_signature = hmac.new(key=self.api_key, msg='{}{}'.format(timestamp, token).encode('ascii'),
                                       digestmod=hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(signature, expected_signature):
+        if not constant_time_compare(signature, expected_signature):
             raise AnymailWebhookValidationFailure("Mailgun webhook called with incorrect signature")
 
     def parse_events(self, request):
