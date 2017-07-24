@@ -41,22 +41,21 @@ in your settings.py.
 
 .. rubric:: MAILJET_API_KEY and MAILJET_SECRET_KEY
 
-Your Mailjet API key and secret, from your Mailjet account REST API settings
+Your Mailjet API key and secret key, from your Mailjet account REST API settings
 under `API Key Management`_. (Mailjet's documentation also sometimes uses
-"API private key" to mean the same thing as "API secret.")
+"API private key" to mean the same thing as "secret key.")
 
   .. code-block:: python
 
       ANYMAIL = {
           ...
           "MAILJET_API_KEY": "<your API key>",
-          "MAILJET_API_SECRET": "<your API secret>",
+          "MAILJET_SECRET_KEY": "<your API secret>",
       }
 
 You can use either a master or sub-account API key.
 
-
-Anymail will also look for ``MAILJET_API_KEY`` and ``MAILJET_API_SECRET`` at the
+Anymail will also look for ``MAILJET_API_KEY`` and ``MAILJET_SECRET_KEY`` at the
 root of the settings file if neither ``ANYMAIL["MAILJET_API_KEY"]``
 nor ``ANYMAIL_MAILJET_API_KEY`` is set.
 
