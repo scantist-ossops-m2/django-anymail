@@ -1,3 +1,3 @@
-VERSION = (1, 2)
+VERSION = (1, 2, 1)
 __version__ = '.'.join([str(x) for x in VERSION])  # major.minor.patch or major.minor.devN
 __minor_version__ = '.'.join([str(x) for x in VERSION[:2]])  # Sphinx's X.Y "version"
