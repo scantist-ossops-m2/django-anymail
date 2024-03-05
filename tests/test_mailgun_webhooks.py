@@ -630,6 +630,22 @@ class MailgunTestCase(WebhookTestCase):
         self.assertEqual(event.event_type, "clicked")
         self.assertEqual(event.click_url, "https://example.com/test")
 
+    def test_delivery_status_is_none_event(self):
+        raw_event = mailgun_sign_payload(
+            {
+                "event-data": {
+                    "event": "accepted",
+                    "delivery-status": None,
+                }
+            }
+        )
+        response = self.client.post(
+            "/anymail/mailgun/tracking/",
+            data=json.dumps(raw_event),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+
 
 @tag("mailgun")
 @override_settings(ANYMAIL_MAILGUN_WEBHOOK_SIGNING_KEY=TEST_WEBHOOK_SIGNING_KEY)
