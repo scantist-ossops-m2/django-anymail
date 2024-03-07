@@ -86,7 +86,7 @@ class UnisenderGoBackendIntegrationTests(AnymailTestMixin, SimpleTestCase):
             cc=["test+cc1@anymail.dev", '"Copy 2, OK?" <test+cc2@anymail.dev>'],
             bcc=[
                 f"test+bcc1@{ANYMAIL_TEST_UNISENDER_GO_DOMAIN}",
-                f'"BCC 2, OK?" <bcc2@{ANYMAIL_TEST_UNISENDER_GO_DOMAIN}>',
+                f'"BCC 2, OK?" <test+bcc2@{ANYMAIL_TEST_UNISENDER_GO_DOMAIN}>',
             ],
             # Unisender Go only supports a single reply-to:
             reply_to=['"Reply, with comma (and parens)" <reply@example.com>'],
