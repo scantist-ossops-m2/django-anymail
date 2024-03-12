@@ -25,6 +25,23 @@ Release history
 ^^^^^^^^^^^^^^^
     ..  This extra heading level keeps the ToC from becoming unmanageably long
 
+
+vNext
+-----
+
+*Unreleased changes*
+
+Breaking changes
+~~~~~~~~~~~~~~~~
+
+* **Amazon SES:** Drop support for the Amazon SES v1 API.
+  If your ``EMAIL_BACKEND`` setting uses ``amazon_sesv1``,
+  or if you are upgrading from Anymail 9.x or earlier directly to 11.0 or later, see
+  `Migrating to the SES v2 API <https://anymail.dev/en/latest/esps/amazon_ses/#amazon-ses-v2>`__.
+  (Anymail 10.0 switched to the SES v2 API by default. If your ``EMAIL_BACKEND``
+  setting has ``amazon_sesv2``, change that to just ``amazon_ses``.)
+
+
 v10.3
 -----
 

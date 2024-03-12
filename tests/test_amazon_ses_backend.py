@@ -9,11 +9,7 @@ from django.core.mail import BadHeaderError
 from django.test import SimpleTestCase, override_settings, tag
 
 from anymail import __version__ as ANYMAIL_VERSION
-from anymail.exceptions import (
-    AnymailAPIError,
-    AnymailDeprecationWarning,
-    AnymailUnsupportedFeature,
-)
+from anymail.exceptions import AnymailAPIError, AnymailUnsupportedFeature
 from anymail.inbound import AnymailInboundMessage
 from anymail.message import AnymailMessage, attach_inline_image_file
 
@@ -973,18 +969,3 @@ class AmazonSESBackendConfigurationTests(AmazonSESBackendMockAPITestCase):
         self.message.send()
         params = self.get_send_params()
         self.assertEqual(params["ConfigurationSetName"], "CustomConfigurationSet")
-
-    @override_settings(EMAIL_BACKEND="anymail.backends.amazon_sesv2.EmailBackend")
-    def test_sesv2_warning(self):
-        # Default SES v2 backend is still available as "amazon_sesv2",
-        # but using that should warn to switch to just "amazon_ses".
-        with self.assertWarnsMessage(
-            AnymailDeprecationWarning,
-            "Please change 'amazon_sesv2' to 'amazon_ses' in your EMAIL_BACKEND setting.",
-        ):
-            self.message.send()
-
-    def test_no_warning_default(self):
-        # Default SES backend does not have "amazon_sesv2" warning.
-        with self.assertDoesNotWarn(AnymailDeprecationWarning):
-            self.message.send()
