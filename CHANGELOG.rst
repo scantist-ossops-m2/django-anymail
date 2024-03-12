@@ -25,32 +25,22 @@ Release history
 ^^^^^^^^^^^^^^^
     ..  This extra heading level keeps the ToC from becoming unmanageably long
 
-vNext
+v10.3
 -----
 
-*unreleased changes*
-
-Deprecations
-~~~~~~~~~~~~
-
-* **SendinBlue:** Rename "SendinBlue" to "Brevo" throughout Anymail's code.
-  This affects the email backend name, settings names, and webhook URLs.
-  The old names will continue to work for now, but are deprecated. See
-  `Updating code from SendinBlue to Brevo <https://anymail.dev/en/latest/esps/brevo/#brevo-rename>`__
-  for details.
-
+*2024-03-12*
 
 Features
 ~~~~~~~~
 
 * **Brevo:** Add support for batch sending
-  (`docs <https://anymail.dev/en/latest/esps/brevo/#batch-sending-merge-and-esp-templates>`__).
+  (`docs <https://anymail.dev/en/stable/esps/brevo/#batch-sending-merge-and-esp-templates>`__).
 
 * **Resend:** Add support for batch sending
-  (`docs <https://anymail.dev/en/latest/esps/resend/#batch-sending-merge-and-esp-templates>`__).
+  (`docs <https://anymail.dev/en/stable/esps/resend/#batch-sending-merge-and-esp-templates>`__).
 
-* **Unisender Go**: Add support for this ESP
-  (`docs <https://anymail.dev/en/latest/esps/unisender_go/>`__).
+* **Unisender Go:** Newly supported ESP
+  (`docs <https://anymail.dev/en/stable/esps/unisender_go/>`__).
   (Thanks to `@Arondit`_ for the implementation.)
 
 
@@ -59,6 +49,17 @@ Fixes
 
 * **Mailgun:** Avoid an error when Mailgun posts null delivery-status
   to the event tracking webhook. (Thanks to `@izimobil`_ for the fix.)
+
+
+Deprecations
+~~~~~~~~~~~~
+
+* **Brevo (SendinBlue):** Rename "SendinBlue" to "Brevo" throughout
+  Anymail's code, reflecting their rebranding.
+  This affects the email backend path, settings names, and webhook URLs.
+  The old names will continue to work for now, but are deprecated. See
+  `Updating code from SendinBlue to Brevo <https://anymail.dev/en/stable/esps/brevo/#brevo-rename>`__
+  for details.
 
 
 v10.2
