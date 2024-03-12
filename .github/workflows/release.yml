@@ -21,6 +21,9 @@ jobs:
   release:
     runs-on: ubuntu-20.04
     environment: release
+    permissions:
+      # `gh release` requires write permission on repo contents
+      contents: write
     steps:
       - name: Get code
         uses: actions/checkout@v3
