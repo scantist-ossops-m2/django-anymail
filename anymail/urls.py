@@ -16,6 +16,10 @@ from .webhooks.postal import PostalInboundWebhookView, PostalTrackingWebhookView
 from .webhooks.postmark import PostmarkInboundWebhookView, PostmarkTrackingWebhookView
 from .webhooks.resend import ResendTrackingWebhookView
 from .webhooks.sendgrid import SendGridInboundWebhookView, SendGridTrackingWebhookView
+from .webhooks.sendinblue import (
+    SendinBlueInboundWebhookView,
+    SendinBlueTrackingWebhookView,
+)
 from .webhooks.sparkpost import (
     SparkPostInboundWebhookView,
     SparkPostTrackingWebhookView,
@@ -69,6 +73,12 @@ urlpatterns = [
         name="sendgrid_inbound_webhook",
     ),
     path(
+        # Compatibility for old SendinBlue esp_name; use Brevo in new code
+        "sendinblue/inbound/",
+        SendinBlueInboundWebhookView.as_view(),
+        name="sendinblue_inbound_webhook",
+    ),
+    path(
         "sparkpost/inbound/",
         SparkPostInboundWebhookView.as_view(),
         name="sparkpost_inbound_webhook",
@@ -117,6 +127,12 @@ urlpatterns = [
         "sendgrid/tracking/",
         SendGridTrackingWebhookView.as_view(),
         name="sendgrid_tracking_webhook",
+    ),
+    path(
+        # Compatibility for old SendinBlue esp_name; use Brevo in new code
+        "sendinblue/tracking/",
+        SendinBlueTrackingWebhookView.as_view(),
+        name="sendinblue_tracking_webhook",
     ),
     path(
         "sparkpost/tracking/",
