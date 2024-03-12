@@ -6,16 +6,16 @@ from django.test import tag
 
 from anymail.exceptions import AnymailConfigurationError
 from anymail.signals import AnymailTrackingEvent
-from anymail.webhooks.sendinblue import SendinBlueTrackingWebhookView
+from anymail.webhooks.brevo import BrevoTrackingWebhookView
 
 from .webhook_cases import WebhookBasicAuthTestCase, WebhookTestCase
 
 
-@tag("sendinblue")
-class SendinBlueWebhookSecurityTestCase(WebhookBasicAuthTestCase):
+@tag("brevo")
+class BrevoWebhookSecurityTestCase(WebhookBasicAuthTestCase):
     def call_webhook(self):
         return self.client.post(
-            "/anymail/sendinblue/tracking/",
+            "/anymail/brevo/tracking/",
             content_type="application/json",
             data=json.dumps({}),
         )
@@ -23,23 +23,22 @@ class SendinBlueWebhookSecurityTestCase(WebhookBasicAuthTestCase):
     # Actual tests are in WebhookBasicAuthTestCase
 
 
-@tag("sendinblue")
-class SendinBlueDeliveryTestCase(WebhookTestCase):
-    # SendinBlue's webhook payload data is partially documented at
-    # https://help.sendinblue.com/hc/en-us/articles/360007666479,
-    # but it's not completely up to date.
+@tag("brevo")
+class BrevoDeliveryTestCase(WebhookTestCase):
+    # Brevo's webhook payload data is documented at
+    # https://developers.brevo.com/docs/transactional-webhooks.
     # The payloads below were obtained through live testing.
 
     def test_sent_event(self):
         raw_event = {
             "event": "request",
             "email": "recipient@example.com",
-            "id": 9999999,  # this seems to be SendinBlue account id (not an event id)
+            "id": 9999999,  # this seems to be Brevo account id (not an event id)
             "message-id": "<201803062010.27287306012@smtp-relay.mailin.fr>",
             "subject": "Test subject",
             # From a message sent at 2018-03-06 11:10:23-08:00
             # (2018-03-06 19:10:23+00:00)...
-            "date": "2018-03-06 11:10:23",  # tz from SendinBlue account's preferences
+            "date": "2018-03-06 11:10:23",  # tz from Brevo account's preferences
             "ts": 1520331023,  # 2018-03-06 10:10:23 -- what time zone is this?
             "ts_event": 1520331023,  # unclear if this ever differs from "ts"
             "ts_epoch": 1520363423000,  # 2018-03-06 19:10:23.000+00:00 -- UTC (msec)
@@ -55,16 +54,16 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
             "sending_ip": "333.33.33.33",
         }
         response = self.client.post(
-            "/anymail/sendinblue/tracking/",
+            "/anymail/brevo/tracking/",
             content_type="application/json",
             data=json.dumps(raw_event),
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.tracking_handler,
-            sender=SendinBlueTrackingWebhookView,
+            sender=BrevoTrackingWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         self.assertIsInstance(event, AnymailTrackingEvent)
@@ -77,7 +76,7 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
         self.assertEqual(
             event.message_id, "<201803062010.27287306012@smtp-relay.mailin.fr>"
         )
-        # SendinBlue does not provide a unique event id:
+        # Brevo does not provide a unique event id:
         self.assertIsNone(event.event_id)
         self.assertEqual(event.recipient, "recipient@example.com")
         self.assertEqual(event.metadata, {"meta": "data"})
@@ -93,16 +92,16 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
             "message-id": "<201803011158.9876543210@smtp-relay.mailin.fr>",
         }
         response = self.client.post(
-            "/anymail/sendinblue/tracking/",
+            "/anymail/brevo/tracking/",
             content_type="application/json",
             data=json.dumps(raw_event),
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.tracking_handler,
-            sender=SendinBlueTrackingWebhookView,
+            sender=BrevoTrackingWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         self.assertIsInstance(event, AnymailTrackingEvent)
@@ -128,16 +127,16 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
             "tag": "header-tag",
         }
         response = self.client.post(
-            "/anymail/sendinblue/tracking/",
+            "/anymail/brevo/tracking/",
             content_type="application/json",
             data=json.dumps(raw_event),
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.tracking_handler,
-            sender=SendinBlueTrackingWebhookView,
+            sender=BrevoTrackingWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         self.assertEqual(event.event_type, "bounced")
@@ -158,16 +157,16 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
             "reason": "undefined Unable to find MX of domain no-mx.example.com",
         }
         response = self.client.post(
-            "/anymail/sendinblue/tracking/",
+            "/anymail/brevo/tracking/",
             content_type="application/json",
             data=json.dumps(raw_event),
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.tracking_handler,
-            sender=SendinBlueTrackingWebhookView,
+            sender=BrevoTrackingWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         self.assertEqual(event.event_type, "bounced")
@@ -188,16 +187,16 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
             "reason": "blocked : due to blacklist user",
         }
         response = self.client.post(
-            "/anymail/sendinblue/tracking/",
+            "/anymail/brevo/tracking/",
             content_type="application/json",
             data=json.dumps(raw_event),
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.tracking_handler,
-            sender=SendinBlueTrackingWebhookView,
+            sender=BrevoTrackingWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         self.assertEqual(event.event_type, "rejected")
@@ -214,16 +213,16 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
             "message-id": "<201803011158.9876543210@smtp-relay.mailin.fr>",
         }
         response = self.client.post(
-            "/anymail/sendinblue/tracking/",
+            "/anymail/brevo/tracking/",
             content_type="application/json",
             data=json.dumps(raw_event),
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.tracking_handler,
-            sender=SendinBlueTrackingWebhookView,
+            sender=BrevoTrackingWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         self.assertEqual(event.event_type, "complained")
@@ -231,7 +230,7 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
     def test_invalid_email(self):
         # "If a ISP again indicated us that the email is not valid or if we discovered
         # that the email is not valid." (unclear whether this error originates with the
-        # receiving MTA or with SendinBlue pre-send) (haven't observed "invalid_email"
+        # receiving MTA or with Brevo pre-send) (haven't observed "invalid_email"
         # event in actual testing; payload below is a guess)
         raw_event = {
             "event": "invalid_email",
@@ -241,16 +240,16 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
             "reason": "(guessing invalid_email includes a reason)",
         }
         response = self.client.post(
-            "/anymail/sendinblue/tracking/",
+            "/anymail/brevo/tracking/",
             content_type="application/json",
             data=json.dumps(raw_event),
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.tracking_handler,
-            sender=SendinBlueTrackingWebhookView,
+            sender=BrevoTrackingWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         self.assertEqual(event.event_type, "bounced")
@@ -262,7 +261,7 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
     def test_deferred_event(self):
         # Note: the example below is an actual event capture (with 'example.com'
         # substituted for the real receiving domain). It's pretty clearly a bounce, not
-        # a deferral. It looks like SendinBlue mis-categorizes this SMTP response code.
+        # a deferral. It looks like Brevo mis-categorizes this SMTP response code.
         raw_event = {
             "event": "deferred",
             "email": "notauser@example.com",
@@ -272,16 +271,16 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
             " address rejected: User unknown in virtual alias table",
         }
         response = self.client.post(
-            "/anymail/sendinblue/tracking/",
+            "/anymail/brevo/tracking/",
             content_type="application/json",
             data=json.dumps(raw_event),
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.tracking_handler,
-            sender=SendinBlueTrackingWebhookView,
+            sender=BrevoTrackingWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         self.assertEqual(event.event_type, "deferred")
@@ -294,7 +293,7 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
         )
 
     def test_opened_event(self):
-        # SendinBlue delivers 'unique_opened' only on the first open, and 'opened'
+        # Brevo delivers 'unique_opened' only on the first open, and 'opened'
         # only on the second or later tracking pixel views. (But they used to deliver
         # both on the first open.)
         raw_event = {
@@ -304,20 +303,20 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
             "message-id": "<201803011158.9876543210@smtp-relay.mailin.fr>",
         }
         response = self.client.post(
-            "/anymail/sendinblue/tracking/",
+            "/anymail/brevo/tracking/",
             content_type="application/json",
             data=json.dumps(raw_event),
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.tracking_handler,
-            sender=SendinBlueTrackingWebhookView,
+            sender=BrevoTrackingWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         self.assertEqual(event.event_type, "opened")
-        self.assertIsNone(event.user_agent)  # SendinBlue doesn't report user agent
+        self.assertIsNone(event.user_agent)  # Brevo doesn't report user agent
 
     def test_unique_opened_event(self):
         # See note in test_opened_event above
@@ -328,16 +327,16 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
             "message-id": "<201803011158.9876543210@smtp-relay.mailin.fr>",
         }
         response = self.client.post(
-            "/anymail/sendinblue/tracking/",
+            "/anymail/brevo/tracking/",
             content_type="application/json",
             data=json.dumps(raw_event),
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.tracking_handler,
-            sender=SendinBlueTrackingWebhookView,
+            sender=BrevoTrackingWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         self.assertEqual(event.event_type, "opened")
@@ -351,21 +350,21 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
             "link": "https://example.com/click/me",
         }
         response = self.client.post(
-            "/anymail/sendinblue/tracking/",
+            "/anymail/brevo/tracking/",
             content_type="application/json",
             data=json.dumps(raw_event),
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.tracking_handler,
-            sender=SendinBlueTrackingWebhookView,
+            sender=BrevoTrackingWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         self.assertEqual(event.event_type, "clicked")
         self.assertEqual(event.click_url, "https://example.com/click/me")
-        self.assertIsNone(event.user_agent)  # SendinBlue doesn't report user agent
+        self.assertIsNone(event.user_agent)  # Brevo doesn't report user agent
 
     def test_unsubscribe(self):
         # "When a person unsubscribes from the email received."
@@ -378,28 +377,28 @@ class SendinBlueDeliveryTestCase(WebhookTestCase):
             "message-id": "<201803011158.9876543210@smtp-relay.mailin.fr>",
         }
         response = self.client.post(
-            "/anymail/sendinblue/tracking/",
+            "/anymail/brevo/tracking/",
             content_type="application/json",
             data=json.dumps(raw_event),
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.tracking_handler,
-            sender=SendinBlueTrackingWebhookView,
+            sender=BrevoTrackingWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         self.assertEqual(event.event_type, "unsubscribed")
 
     def test_misconfigured_inbound(self):
         errmsg = (
-            "You seem to have set SendinBlue's *inbound* webhook URL"
-            " to Anymail's SendinBlue *tracking* webhook URL."
+            "You seem to have set Brevo's *inbound* webhook URL"
+            " to Anymail's Brevo *tracking* webhook URL."
         )
         with self.assertRaisesMessage(AnymailConfigurationError, errmsg):
             self.client.post(
-                "/anymail/sendinblue/tracking/",
+                "/anymail/brevo/tracking/",
                 content_type="application/json",
                 data={"items": []},
             )

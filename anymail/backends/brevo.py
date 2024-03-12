@@ -8,10 +8,10 @@ from .base_requests import AnymailRequestsBackend, RequestsPayload
 
 class EmailBackend(AnymailRequestsBackend):
     """
-    SendinBlue v3 API Email Backend
+    Brevo v3 API Email Backend
     """
 
-    esp_name = "SendinBlue"
+    esp_name = "Brevo"
 
     def __init__(self, **kwargs):
         """Init options from Django settings"""
@@ -33,11 +33,11 @@ class EmailBackend(AnymailRequestsBackend):
         super().__init__(api_url, **kwargs)
 
     def build_message_payload(self, message, defaults):
-        return SendinBluePayload(message, defaults, self)
+        return BrevoPayload(message, defaults, self)
 
     def parse_recipient_status(self, response, payload, message):
-        # SendinBlue doesn't give any detail on a success
-        # https://developers.sendinblue.com/docs/responses
+        # Brevo doesn't give any detail on a success, other than messageId
+        # https://developers.brevo.com/reference/sendtransacemail
         message_id = None
         message_ids = []
 
@@ -51,7 +51,7 @@ class EmailBackend(AnymailRequestsBackend):
                     message_ids = parsed_response["messageIds"]
                 except (KeyError, TypeError) as err:
                     raise AnymailRequestsAPIError(
-                        "Invalid SendinBlue API response format",
+                        "Invalid Brevo API response format",
                         email_message=message,
                         payload=payload,
                         response=response,
@@ -70,7 +70,7 @@ class EmailBackend(AnymailRequestsBackend):
         return recipient_status
 
 
-class SendinBluePayload(RequestsPayload):
+class BrevoPayload(RequestsPayload):
     def __init__(self, message, defaults, backend, *args, **kwargs):
         self.all_recipients = []  # used for backend.parse_recipient_status
         self.to_recipients = []  # used for backend.parse_recipient_status
@@ -124,7 +124,7 @@ class SendinBluePayload(RequestsPayload):
 
     @staticmethod
     def email_object(email):
-        """Converts EmailAddress to SendinBlue API array"""
+        """Converts EmailAddress to Brevo API array"""
         email_object = dict()
         email_object["email"] = email.addr_spec
         if email.display_name:
@@ -147,14 +147,14 @@ class SendinBluePayload(RequestsPayload):
             self.data["subject"] = subject
 
     def set_reply_to(self, emails):
-        # SendinBlue only supports a single address in the reply_to API param.
+        # Brevo only supports a single address in the reply_to API param.
         if len(emails) > 1:
             self.unsupported_feature("multiple reply_to addresses")
         if len(emails) > 0:
             self.data["replyTo"] = self.email_object(emails[0])
 
     def set_extra_headers(self, headers):
-        # SendinBlue requires header values to be strings (not integers) as of 11/2022.
+        # Brevo requires header values to be strings (not integers) as of 11/2022.
         # Stringify ints and floats; anything else is the caller's responsibility.
         self.data["headers"].update(
             {
@@ -182,7 +182,7 @@ class SendinBluePayload(RequestsPayload):
             self.data["htmlContent"] = body
 
     def add_attachment(self, attachment):
-        """Converts attachments to SendinBlue API {name, base64} array"""
+        """Converts attachments to Brevo API {name, base64} array"""
         att = {
             "name": attachment.name or "",
             "content": attachment.b64content,
@@ -204,7 +204,7 @@ class SendinBluePayload(RequestsPayload):
         self.data["params"] = merge_global_data
 
     def set_metadata(self, metadata):
-        # SendinBlue expects a single string payload
+        # Brevo expects a single string payload
         self.data["headers"]["X-Mailin-custom"] = self.serialize_json(metadata)
         self.metadata = metadata  # needed in serialize_data for batch send
 

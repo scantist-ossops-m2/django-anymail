@@ -32,19 +32,16 @@ from .utils import (
 )
 
 
-@tag("sendinblue")
+@tag("brevo")
 @override_settings(
-    EMAIL_BACKEND="anymail.backends.sendinblue.EmailBackend",
-    ANYMAIL={"SENDINBLUE_API_KEY": "test_api_key"},
+    EMAIL_BACKEND="anymail.backends.brevo.EmailBackend",
+    ANYMAIL={"BREVO_API_KEY": "test_api_key"},
 )
-class SendinBlueBackendMockAPITestCase(RequestsBackendMockAPITestCase):
-    # SendinBlue v3 success responses are empty
+class BrevoBackendMockAPITestCase(RequestsBackendMockAPITestCase):
     DEFAULT_RAW_RESPONSE = (
         b'{"messageId":"<201801020304.1234567890@smtp-relay.mailin.fr>"}'
     )
-    DEFAULT_STATUS_CODE = (
-        201  # SendinBlue v3 uses '201 Created' for success (in most cases)
-    )
+    DEFAULT_STATUS_CODE = 201  # Brevo v3 uses '201 Created' for success (in most cases)
 
     def setUp(self):
         super().setUp()
@@ -54,8 +51,8 @@ class SendinBlueBackendMockAPITestCase(RequestsBackendMockAPITestCase):
         )
 
 
-@tag("sendinblue")
-class SendinBlueBackendStandardEmailTests(SendinBlueBackendMockAPITestCase):
+@tag("brevo")
+class BrevoBackendStandardEmailTests(BrevoBackendMockAPITestCase):
     """Test backend support for Django standard email features"""
 
     def test_send_mail(self):
@@ -204,7 +201,7 @@ class SendinBlueBackendStandardEmailTests(SendinBlueBackendMockAPITestCase):
         )
 
     def test_multiple_reply_to(self):
-        # SendinBlue v3 only allows a single reply address
+        # Brevo v3 only allows a single reply address
         self.message.reply_to = [
             '"Reply recipient" <reply@example.com',
             "reply2@example.com",
@@ -274,7 +271,7 @@ class SendinBlueBackendStandardEmailTests(SendinBlueBackendMockAPITestCase):
         )
 
     def test_embedded_images(self):
-        # SendinBlue doesn't support inline image
+        # Brevo doesn't support inline image
         # inline image are just added as a content attachment
 
         image_filename = SAMPLE_IMAGE_FILENAME
@@ -339,7 +336,7 @@ class SendinBlueBackendStandardEmailTests(SendinBlueBackendMockAPITestCase):
 
     def test_api_failure(self):
         self.set_mock_response(status_code=400)
-        with self.assertRaisesMessage(AnymailAPIError, "SendinBlue API response 400"):
+        with self.assertRaisesMessage(AnymailAPIError, "Brevo API response 400"):
             mail.send_mail("Subject", "Body", "from@example.com", ["to@example.com"])
 
         # Make sure fail_silently is respected
@@ -373,12 +370,12 @@ class SendinBlueBackendStandardEmailTests(SendinBlueBackendMockAPITestCase):
             self.message.send()
 
 
-@tag("sendinblue")
-class SendinBlueBackendAnymailFeatureTests(SendinBlueBackendMockAPITestCase):
+@tag("brevo")
+class BrevoBackendAnymailFeatureTests(BrevoBackendMockAPITestCase):
     """Test backend support for Anymail added features"""
 
     def test_envelope_sender(self):
-        # SendinBlue does not have a way to change envelope sender.
+        # Brevo does not have a way to change envelope sender.
         self.message.envelope_sender = "anything@bounces.example.com"
         with self.assertRaisesMessage(AnymailUnsupportedFeature, "envelope_sender"):
             self.message.send()
@@ -459,7 +456,7 @@ class SendinBlueBackendAnymailFeatureTests(SendinBlueBackendMockAPITestCase):
             self.message.send()
 
     def test_template_id(self):
-        # subject, body, and from_email must be None for SendinBlue template send:
+        # subject, body, and from_email must be None for Brevo template send:
         message = mail.EmailMessage(
             subject="My Subject",
             body=None,
@@ -470,7 +467,7 @@ class SendinBlueBackendAnymailFeatureTests(SendinBlueBackendMockAPITestCase):
             bcc=["Recipient <bcc@example.com>"],
             reply_to=["Recipient <reply@example.com>"],
         )
-        # SendinBlue uses per-account numeric ID to identify templates:
+        # Brevo uses per-account numeric ID to identify templates:
         message.template_id = 12
         message.send()
         data = self.get_api_call_json()
@@ -603,7 +600,7 @@ class SendinBlueBackendAnymailFeatureTests(SendinBlueBackendMockAPITestCase):
     # noinspection PyUnresolvedReferences
     def test_send_attaches_anymail_status(self):
         """The anymail_status should be attached to the message when it is sent"""
-        # the DEFAULT_RAW_RESPONSE above is the *only* success response SendinBlue
+        # the DEFAULT_RAW_RESPONSE above is the *only* success response Brevo
         # returns, so no need to override it here
         msg = mail.EmailMessage(
             "Subject",
@@ -652,39 +649,37 @@ class SendinBlueBackendAnymailFeatureTests(SendinBlueBackendMockAPITestCase):
         err = cm.exception
         self.assertIsInstance(err, TypeError)  # compatibility with json.dumps
         # our added context:
-        self.assertIn("Don't know how to send this data to SendinBlue", str(err))
+        self.assertIn("Don't know how to send this data to Brevo", str(err))
         # original message
         self.assertRegex(str(err), r"Decimal.*is not JSON serializable")
 
 
-@tag("sendinblue")
-class SendinBlueBackendRecipientsRefusedTests(SendinBlueBackendMockAPITestCase):
+@tag("brevo")
+class BrevoBackendRecipientsRefusedTests(BrevoBackendMockAPITestCase):
     """
     Should raise AnymailRecipientsRefused when *all* recipients are rejected or invalid
     """
 
-    # SendinBlue doesn't check email bounce or complaint lists at time of send --
+    # Brevo doesn't check email bounce or complaint lists at time of send --
     # it always just queues the message. You'll need to listen for the "rejected"
     # and "failed" events to detect refused recipients.
     pass  # not applicable to this backend
 
 
-@tag("sendinblue")
-class SendinBlueBackendSessionSharingTestCase(
-    SessionSharingTestCases, SendinBlueBackendMockAPITestCase
+@tag("brevo")
+class BrevoBackendSessionSharingTestCase(
+    SessionSharingTestCases, BrevoBackendMockAPITestCase
 ):
     """Requests session sharing tests"""
 
     pass  # tests are defined in SessionSharingTestCases
 
 
-@tag("sendinblue")
-@override_settings(EMAIL_BACKEND="anymail.backends.sendinblue.EmailBackend")
-class SendinBlueBackendImproperlyConfiguredTests(AnymailTestMixin, SimpleTestCase):
+@tag("brevo")
+@override_settings(EMAIL_BACKEND="anymail.backends.brevo.EmailBackend")
+class BrevoBackendImproperlyConfiguredTests(AnymailTestMixin, SimpleTestCase):
     """Test ESP backend without required settings in place"""
 
     def test_missing_auth(self):
-        with self.assertRaisesRegex(
-            AnymailConfigurationError, r"\bSENDINBLUE_API_KEY\b"
-        ):
+        with self.assertRaisesRegex(AnymailConfigurationError, r"\bBREVO_API_KEY\b"):
             mail.send_mail("Subject", "Message", "from@example.com", ["to@example.com"])

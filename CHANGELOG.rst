@@ -30,6 +30,16 @@ vNext
 
 *unreleased changes*
 
+Deprecations
+~~~~~~~~~~~~
+
+* **SendinBlue:** Rename "SendinBlue" to "Brevo" throughout Anymail's code.
+  This affects the email backend name, settings names, and webhook URLs.
+  The old names will continue to work for now, but are deprecated. See
+  `Updating code from SendinBlue to Brevo <https://anymail.dev/en/latest/esps/brevo/#brevo-rename>`__
+  for details.
+
+
 Features
 ~~~~~~~~
 

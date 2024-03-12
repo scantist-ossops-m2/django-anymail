@@ -4,14 +4,24 @@
 Brevo
 =====
 
+.. Docs note: esps/sendinblue is redirected to esps/brevo in ReadTheDocs config.
+   Please preserve existing _sendinblue-* ref labels, so that redirected link
+   anchors work properly (in old links from external sites). E.g.:
+     an old link:   https://anymail.dev/en/stable/esps/sendinblue#sendinblue-templates
+     redirects to:  https://anymail.dev/en/stable/esps/brevo#sendinblue-templates
+     which is also: https://anymail.dev/en/stable/esps/brevo#brevo-templates
+   (There's no need to create _sendinblue-* duplicates of any new _brevo-* labels.)
+
 Anymail integrates with the `Brevo`_ email service (formerly Sendinblue), using their `API v3`_.
 Brevo's transactional API does not support some basic email features, such as
-inline images. Be sure to review the :ref:`limitations <sendinblue-limitations>` below.
+inline images. Be sure to review the :ref:`limitations <brevo-limitations>` below.
 
-.. versionchanged:: 10.1
+.. versionchanged:: 10.3
 
-   Brevo was called "Sendinblue" until May, 2023. To avoid unnecessary code changes,
-   Anymail still uses the old name in code (settings, backend, webhook urls, etc.).
+   SendinBlue rebranded as Brevo in May, 2023. Anymail 10.3 uses the new
+   name throughout its code; earlier versions used the old name. Code that
+   refers to "SendinBlue" should continue to work, but is now deprecated.
+   See :ref:`brevo-rename` for details.
 
 .. important::
 
@@ -36,14 +46,14 @@ To use Anymail's Brevo backend, set:
 
   .. code-block:: python
 
-      EMAIL_BACKEND = "anymail.backends.sendinblue.EmailBackend"
+      EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
 
 in your settings.py.
 
 
-.. setting:: ANYMAIL_SENDINBLUE_API_KEY
+.. setting:: ANYMAIL_BREVO_API_KEY
 
-.. rubric:: SENDINBLUE_API_KEY
+.. rubric:: BREVO_API_KEY
 
 The API key can be retrieved from your Brevo `SMTP & API settings`_ on the
 "API Keys" tab (don't try to use an SMTP key). Required.
@@ -55,23 +65,23 @@ Anymail. If you don't see a v3 key listed, use "Create a New API Key".)
 
       ANYMAIL = {
           ...
-          "SENDINBLUE_API_KEY": "<your v3 API key>",
+          "BREVO_API_KEY": "<your v3 API key>",
       }
 
-Anymail will also look for ``SENDINBLUE_API_KEY`` at the
-root of the settings file if neither ``ANYMAIL["SENDINBLUE_API_KEY"]``
-nor ``ANYMAIL_SENDINBLUE_API_KEY`` is set.
+Anymail will also look for ``BREVO_API_KEY`` at the
+root of the settings file if neither ``ANYMAIL["BREVO_API_KEY"]``
+nor ``ANYMAIL_BREVO_API_KEY`` is set.
 
 .. _SMTP & API settings: https://app.brevo.com/settings/keys/api
 
 
-.. setting:: ANYMAIL_SENDINBLUE_API_URL
+.. setting:: ANYMAIL_BREVO_API_URL
 
-.. rubric:: SENDINBLUE_API_URL
+.. rubric:: BREVO_API_URL
 
 The base url for calling the Brevo API.
 
-The default is ``SENDINBLUE_API_URL = "https://api.brevo.com/v3/"``
+The default is ``BREVO_API_URL = "https://api.brevo.com/v3/"``
 (It's unlikely you would need to change this.)
 
 .. versionchanged:: 10.1
@@ -79,6 +89,7 @@ The default is ``SENDINBLUE_API_URL = "https://api.brevo.com/v3/"``
    Earlier Anymail releases used ``https://api.sendinblue.com/v3/``.
 
 
+.. _brevo-esp-extra:
 .. _sendinblue-esp-extra:
 
 esp_extra support
@@ -106,6 +117,7 @@ to apply it to all messages.)
 .. _smtp/email API: https://developers.brevo.com/reference/sendtransacemail
 
 
+.. _brevo-limitations:
 .. _sendinblue-limitations:
 
 Limitations and quirks
@@ -192,6 +204,7 @@ Brevo can handle.
   on individual messages.
 
 
+.. _brevo-templates:
 .. _sendinblue-templates:
 
 Batch sending/merge and ESP templates
@@ -267,9 +280,9 @@ message's headers: ``message.extra_headers = {"idempotencyKey": "...uuid..."}``.
 
 .. caution::
 
-    **Sendinblue "old template language" not supported**
+    **"Old template language" not supported**
 
-    Sendinblue once supported two different template styles: a "new" template
+    Brevo once supported two different template styles: a "new" template
     language that uses Django-like template syntax (with ``{{ param.NAME }}``
     substitutions), and an "old" template language that used percent-delimited
     ``%NAME%`` substitutions.
@@ -299,17 +312,18 @@ message's headers: ``message.extra_headers = {"idempotencyKey": "...uuid..."}``.
     https://help.brevo.com/hc/en-us/articles/360000991960
 
 
+.. _brevo-webhooks:
 .. _sendinblue-webhooks:
 
 Status tracking webhooks
 ------------------------
 
 If you are using Anymail's normalized :ref:`status tracking <event-tracking>`, add
-the url at Brevo's site under  `Transactional > Email > Settings > Webhook`_.
+the url at Brevo's site under `Transactional > Email > Settings > Webhook`_.
 
 The "URL to call" is:
 
-   :samp:`https://{random}:{random}@{yoursite.example.com}/anymail/sendinblue/tracking/`
+   :samp:`https://{random}:{random}@{yoursite.example.com}/anymail/brevo/tracking/`
 
      * *random:random* is an :setting:`ANYMAIL_WEBHOOK_SECRET` shared secret
      * *yoursite.example.com* is your Django site
@@ -336,10 +350,17 @@ For example, it's not uncommon to receive a "delivered" event before the corresp
 The event's :attr:`~anymail.signals.AnymailTrackingEvent.esp_event` field will be
 a `dict` of raw webhook data received from Brevo.
 
+.. versionchanged:: 10.3
+
+    Older Anymail versions used a tracking webhook URL containing "sendinblue" rather
+    than "brevo". The old URL will still work, but is deprecated. See :ref:`brevo-rename`
+    below.
+
 
 .. _Transactional > Email > Settings > Webhook: https://app-smtp.brevo.com/webhook
 
 
+.. _brevo-inbound:
 .. _sendinblue-inbound:
 
 Inbound webhook
@@ -353,7 +374,7 @@ guide to enable inbound service and add Anymail's inbound webhook.
 
 At the "Creating the webhook" step, set the ``"url"`` param to:
 
-   :samp:`https://{random}:{random}@{yoursite.example.com}/anymail/sendinblue/inbound/`
+   :samp:`https://{random}:{random}@{yoursite.example.com}/anymail/brevo/inbound/`
 
      * *random:random* is an :setting:`ANYMAIL_WEBHOOK_SECRET` shared secret
      * *yoursite.example.com* is your Django site
@@ -364,6 +385,12 @@ by entering your API key in "Header" field above the example, and then clicking
 "Try It!". The `webhooks management APIs`_ and `inbound events list API`_ can
 be helpful for diagnosing inbound issues.
 
+.. versionchanged:: 10.3
+
+    Older Anymail versions used an inbound webhook URL containing "sendinblue" rather
+    than "brevo". The old URL will still work, but is deprecated. See :ref:`brevo-rename`
+    below.
+
 
 .. _Inbound parsing webhooks:
     https://developers.brevo.com/docs/inbound-parse-webhooks
@@ -371,3 +398,101 @@ be helpful for diagnosing inbound issues.
     https://developers.brevo.com/reference/getwebhooks-1
 .. _inbound events list API:
     https://developers.brevo.com/reference/getinboundemailevents
+
+
+.. _brevo-rename:
+
+Updating code from SendinBlue to Brevo
+--------------------------------------
+
+SendinBlue rebranded as Brevo in May, 2023. Anymail 10.3 has switched
+to the new name.
+
+If your code refers to the old "sendinblue" name
+(in :setting:`!EMAIL_BACKEND` and :setting:`!ANYMAIL` settings, :attr:`!esp_name`
+checks, or elsewhere) you should update it to use "brevo" instead.
+If you are using Anymail's tracking or inbound webhooks, you should
+also update the webhook URLs you've configured at Brevo.
+
+For compatibility, code and URLs using the old name are still functional in Anymail.
+But they will generate deprecation warnings, and may be removed in a future release.
+
+To update your code:
+
+.. setting:: ANYMAIL_SENDINBLUE_API_KEY
+.. setting:: ANYMAIL_SENDINBLUE_API_URL
+
+1.  In your settings.py, update the :setting:`!EMAIL_BACKEND`
+    and rename any ``"SENDINBLUE_..."`` settings to ``"BREVO_..."``:
+
+    .. code-block:: diff
+
+      - EMAIL_BACKEND = "anymail.backends.sendinblue.EmailBackend"  # old
+      + EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"       # new
+
+        ANYMAIL = {
+            ...
+      -     "SENDINBLUE_API_KEY": "<your v3 API key>",  # old
+      +     "BREVO_API_KEY": "<your v3 API key>",       # new
+            # (Also change "SENDINBLUE_API_URL" to "BREVO_API_URL" if present)
+
+            # If you are using Brevo-specific global send defaults, change:
+      -     "SENDINBLUE_SEND_DEFAULTS" = {...},  # old
+      +     "BREVO_SEND_DEFAULTS" = {...},       # new
+        }
+
+2.  If you are using Anymail's status tracking webhook,
+    go to Brevo's dashboard (under `Transactional > Email > Settings > Webhook`_),
+    and change the end or the URL from ``.../anymail/sendinblue/tracking/``
+    to ``.../anymail/brevo/tracking/``. (Or use the code below to automate this.)
+
+    In your :ref:`tracking signal receiver function <signal-receivers>`,
+    if you are examining the ``esp_name`` parameter, the name will change
+    once you have updated the webhook URL. If you had been checking
+    whether ``esp_name == "SendinBlue"``, change that to check if
+    ``esp_name == "Brevo"``.
+
+3.  If you are using Anymail's inbound handling, update the inbound webhook
+    URL to change ``.../anymail/sendinblue/inbound/`` to ``.../anymail/brevo/inbound/``.
+    You will need to use Brevo's webhooks API to make the change---see below.
+
+    In your :ref:`inbound signal receiver function <inbound-signal-receivers>`,
+    if you are examining the ``esp_name`` parameter, the name will change
+    once you have updated the webhook URL. If you had been checking
+    whether ``esp_name == "SendinBlue"``, change that to check if
+    ``esp_name == "Brevo"``.
+
+That should be everything, but to double check you may want to search your
+code for any remaining references to "sendinblue" (case-insensitive).
+(E.g., ``grep -r -i sendinblue``.)
+
+To update both the tracking and inbound webhook URLs using Brevo's `webhooks API`_,
+you could run something like this Python code:
+
+.. code-block:: python
+
+    # Update Brevo webhook URLs to replace "anymail/sendinblue" with "anymail/brevo".
+    import requests
+    BREVO_API_KEY = "<your API key>"
+
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+    }
+
+    response = requests.get("https://api.brevo.com/v3/webhooks", headers=headers)
+    response.raise_for_status()
+    webhooks = response.json()
+
+    for webhook in webhooks:
+        if "anymail/sendinblue" in webhook["url"]:
+            response = requests.put(
+                f"https://api.brevo.com/v3/webhooks/{webhook['id']}",
+                headers=headers,
+                json={
+                    "url": webhook["url"].replace("anymail/sendinblue", "anymail/brevo")
+                }
+            )
+            response.raise_for_status()
+
+.. _webhooks API: https://developers.brevo.com/reference/updatewebhook-1

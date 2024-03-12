@@ -7,15 +7,15 @@ from responses.matchers import header_matcher
 from anymail.exceptions import AnymailConfigurationError
 from anymail.inbound import AnymailInboundMessage
 from anymail.signals import AnymailInboundEvent
-from anymail.webhooks.sendinblue import SendinBlueInboundWebhookView
+from anymail.webhooks.brevo import BrevoInboundWebhookView
 
 from .utils import sample_email_content, sample_image_content
 from .webhook_cases import WebhookTestCase
 
 
-@tag("sendinblue")
-@override_settings(ANYMAIL_SENDINBLUE_API_KEY="test-api-key")
-class SendinBlueInboundTestCase(WebhookTestCase):
+@tag("brevo")
+@override_settings(ANYMAIL_BREVO_API_KEY="test-api-key")
+class BrevoInboundTestCase(WebhookTestCase):
     def test_inbound_basics(self):
         # Actual (sanitized) Brevo inbound message payload 7/2023
         raw_event = {
@@ -54,16 +54,16 @@ class SendinBlueInboundTestCase(WebhookTestCase):
         }
 
         response = self.client.post(
-            "/anymail/sendinblue/inbound/",
+            "/anymail/brevo/inbound/",
             content_type="application/json",
             data={"items": [raw_event]},
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.inbound_handler,
-            sender=SendinBlueInboundWebhookView,
+            sender=BrevoInboundWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         # AnymailInboundEvent
         event = kwargs["event"]
@@ -123,15 +123,15 @@ class SendinBlueInboundTestCase(WebhookTestCase):
             }
         }
         self.client.post(
-            "/anymail/sendinblue/inbound/",
+            "/anymail/brevo/inbound/",
             content_type="application/json",
             data={"items": [raw_event]},
         )
         kwargs = self.assert_handler_called_once_with(
             self.inbound_handler,
-            sender=SendinBlueInboundWebhookView,
+            sender=BrevoInboundWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         message = event.message
@@ -203,16 +203,16 @@ class SendinBlueInboundTestCase(WebhookTestCase):
         )
 
         response = self.client.post(
-            "/anymail/sendinblue/inbound/",
+            "/anymail/brevo/inbound/",
             content_type="application/json",
             data={"items": [raw_event]},
         )
         self.assertEqual(response.status_code, 200)
         kwargs = self.assert_handler_called_once_with(
             self.inbound_handler,
-            sender=SendinBlueInboundWebhookView,
+            sender=BrevoInboundWebhookView,
             event=ANY,
-            esp_name="SendinBlue",
+            esp_name="Brevo",
         )
         event = kwargs["event"]
         message = event.message
@@ -235,12 +235,12 @@ class SendinBlueInboundTestCase(WebhookTestCase):
 
     def test_misconfigured_tracking(self):
         errmsg = (
-            "You seem to have set SendinBlue's *tracking* webhook URL"
-            " to Anymail's SendinBlue *inbound* webhook URL."
+            "You seem to have set Brevo's *tracking* webhook URL"
+            " to Anymail's Brevo *inbound* webhook URL."
         )
         with self.assertRaisesMessage(AnymailConfigurationError, errmsg):
             self.client.post(
-                "/anymail/sendinblue/inbound/",
+                "/anymail/brevo/inbound/",
                 content_type="application/json",
                 data={"event": "delivered"},
             )

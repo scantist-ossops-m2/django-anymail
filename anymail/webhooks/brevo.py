@@ -19,12 +19,14 @@ from ..utils import get_anymail_setting
 from .base import AnymailBaseWebhookView
 
 
-class SendinBlueBaseWebhookView(AnymailBaseWebhookView):
-    esp_name = "SendinBlue"
+class BrevoBaseWebhookView(AnymailBaseWebhookView):
+    esp_name = "Brevo"
 
 
-class SendinBlueTrackingWebhookView(SendinBlueBaseWebhookView):
-    """Handler for SendinBlue delivery and engagement tracking webhooks"""
+class BrevoTrackingWebhookView(BrevoBaseWebhookView):
+    """Handler for Brevo delivery and engagement tracking webhooks"""
+
+    # https://developers.brevo.com/docs/transactional-webhooks
 
     signal = tracking
 
@@ -33,15 +35,13 @@ class SendinBlueTrackingWebhookView(SendinBlueBaseWebhookView):
         if "items" in esp_event:
             # This is an inbound webhook post
             raise AnymailConfigurationError(
-                "You seem to have set SendinBlue's *inbound* webhook URL "
-                "to Anymail's SendinBlue *tracking* webhook URL."
+                f"You seem to have set Brevo's *inbound* webhook URL "
+                f"to Anymail's {self.esp_name} *tracking* webhook URL."
             )
         return [self.esp_to_anymail_event(esp_event)]
 
-    # SendinBlue's webhook payload data doesn't seem to be documented anywhere.
-    # There's a list of webhook events at https://apidocs.sendinblue.com/webhooks/#3.
     event_types = {
-        # Map SendinBlue event type: Anymail normalized (event type, reject reason)
+        # Map Brevo event type: Anymail normalized (event type, reject reason)
         # received even if message won't be sent (e.g., before "blocked"):
         "request": (EventType.QUEUED, None),
         "delivered": (EventType.DELIVERED, None),
@@ -67,7 +67,7 @@ class SendinBlueTrackingWebhookView(SendinBlueBaseWebhookView):
         recipient = esp_event.get("email")
 
         try:
-            # SendinBlue supplies "ts", "ts_event" and "date" fields, which seem to be
+            # Brevo supplies "ts", "ts_event" and "date" fields, which seem to be
             # based on the timezone set in the account preferences (and possibly with
             # inconsistent DST adjustment). "ts_epoch" is the only field that seems to
             # be consistently UTC; it's in milliseconds
@@ -98,7 +98,7 @@ class SendinBlueTrackingWebhookView(SendinBlueBaseWebhookView):
         return AnymailTrackingEvent(
             description=None,
             esp_event=esp_event,
-            # SendinBlue doesn't provide a unique event id:
+            # Brevo doesn't provide a unique event id:
             event_id=None,
             event_type=event_type,
             message_id=esp_event.get("message-id"),
@@ -113,8 +113,10 @@ class SendinBlueTrackingWebhookView(SendinBlueBaseWebhookView):
         )
 
 
-class SendinBlueInboundWebhookView(SendinBlueBaseWebhookView):
-    """Handler for SendinBlue inbound email webhooks"""
+class BrevoInboundWebhookView(BrevoBaseWebhookView):
+    """Handler for Brevo inbound email webhooks"""
+
+    # https://developers.brevo.com/docs/inbound-parse-webhooks#parsed-email-payload
 
     signal = inbound
 
@@ -141,10 +143,10 @@ class SendinBlueInboundWebhookView(SendinBlueBaseWebhookView):
         try:
             esp_events = payload["items"]
         except KeyError:
-            # This is not n inbound webhook post
+            # This is not an inbound webhook post
             raise AnymailConfigurationError(
-                "You seem to have set SendinBlue's *tracking* webhook URL "
-                "to Anymail's SendinBlue *inbound* webhook URL."
+                f"You seem to have set Brevo's *tracking* webhook URL "
+                f"to Anymail's {self.esp_name} *inbound* webhook URL."
             )
         else:
             return [self.esp_to_anymail_event(esp_event) for esp_event in esp_events]
@@ -199,7 +201,7 @@ class SendinBlueInboundWebhookView(SendinBlueBaseWebhookView):
         )
 
     def _fetch_attachment(self, attachment):
-        # Download attachment content from SendinBlue API.
+        # Download attachment content from Brevo API.
         # FUTURE: somehow defer download until attachment is accessed?
         token = attachment["DownloadToken"]
         url = urljoin(self.api_url, f"inbound/attachments/{quote(token, safe='')}")
