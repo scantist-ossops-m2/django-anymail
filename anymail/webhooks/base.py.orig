@@ -3,7 +3,6 @@ import warnings
 
 import six
 from django.http import HttpResponse
-from django.utils.crypto import constant_time_compare
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
@@ -42,13 +41,8 @@ class AnymailBasicAuthMixin(object):
     def validate_request(self, request):
         """If configured for webhook basic auth, validate request has correct auth."""
         if self.basic_auth:
-            request_auth = get_request_basic_auth(request)
-            # Use constant_time_compare to avoid timing attack on basic auth. (It's OK that any()
-            # can terminate early: we're not trying to protect how many auth strings are allowed,
-            # just the contents of each individual auth string.)
-            auth_ok = any(constant_time_compare(request_auth, allowed_auth)
-                          for allowed_auth in self.basic_auth)
-            if not auth_ok:
+            basic_auth = get_request_basic_auth(request)
+            if basic_auth is None or basic_auth not in self.basic_auth:
                 # noinspection PyUnresolvedReferences
                 raise AnymailWebhookValidationFailure(
                     "Missing or invalid basic auth in Anymail %s webhook" % self.esp_name)
@@ -84,11 +78,8 @@ class AnymailBaseWebhookView(AnymailBasicAuthMixin, View):
         *All* definitions of this method in the class chain (including mixins)
         will be called. There is no need to chain to the superclass.
         (See self.run_validators and collect_all_methods.)
-
-        Security note: use django.utils.crypto.constant_time_compare for string
-        comparisons, to avoid exposing your validation to a timing attack.
         """
-        # if not constant_time_compare(request.POST['signature'], expected_signature):
+        # if request.POST['signature'] != expected_signature:
         #     raise AnymailWebhookValidationFailure("...message...")
         # (else just do nothing)
         pass
